@@ -66,8 +66,6 @@ def compute_row(algorithms, x_distribution, noise_distributions, noise_distribut
               'k': k
           } | alg_intercepts
 
-    print(row)
-
     return row
 
 
