@@ -36,7 +36,7 @@ def partition(xs, ys, m):
 def random_subsets(num_times_mk_func):
     def alg(xs, ys, m):
         k = len(ys) // m
-        indices = [sample(range(len(ys)), k) for _ in range(num_times_mk_func(m, k))]
+        indices = [sample(range(len(ys)), m) for _ in range(num_times_mk_func(m, k))]
         return _best_intercept_from_indices(xs, ys, indices)
 
     return alg
