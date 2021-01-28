@@ -9,13 +9,12 @@ from scipy.stats import uniform, norm, beta, bernoulli, powerlaw
 
 from algorithms import all_points, partition, random_subsets, opt
 
-all_algorithms = {
+algorithms = {
     'all': all_points,
     'partition': partition,
     'random_1': random_subsets(lambda m, k: 1),
     'random_(10*km)': random_subsets(lambda m, k: 10 * k * m),
     'random_1000': random_subsets(lambda m, k: 1000),
-    'opt': opt,
 }
 
 
@@ -26,13 +25,14 @@ def mirror_distribution(dist):
     return sample
 
 
-distributions = {
-    'uniform(-1,1)': uniform(-1, 2).rvs,
+noise_distributions = {
     'uniform(-2,2)': uniform(-2, 4).rvs,
     'normal(0,.5^2)': norm(0, .5).rvs,
     'beta(2-2)-mirrored': mirror_distribution(beta(2, 2)),
     'power-law(2)-mirrored': mirror_distribution(powerlaw(3)),
 }
+
+x_distribution = uniform(-1, 2).rvs
 
 
 def generate_xs_ys(num_points, noise_distribution, slope, x_distribution):
@@ -42,21 +42,28 @@ def generate_xs_ys(num_points, noise_distribution, slope, x_distribution):
     return xs, ys
 
 
-def run_experiment(algorithms, x_distribution, noise_distribution, slope, m, k):
+def run_experiment(noise_distribution, slope, m, k):
     xs, ys = generate_xs_ys(num_points=m * k,
                             noise_distribution=noise_distribution,
                             slope=slope,
                             x_distribution=x_distribution)
-    return {alg_name: alg(xs, ys, m) for alg_name, alg in algorithms.items()}
+
+    alg_intercepts = {alg_name: alg(xs, ys, m) for alg_name, alg in algorithms.items()}
+
+    if m <= 3 and k <= 20:
+        opt_val = opt(xs, ys, m)
+    else:
+        opt_val = None
+
+    return alg_intercepts | {'opt': opt_val}
 
 
-def compute_row(algorithms, x_distribution, noise_distributions, noise_distribution_name, slope, m, k):
-    alg_intercepts = run_experiment(algorithms=algorithms,
-                                    x_distribution=x_distribution,
-                                    noise_distribution=noise_distributions[noise_distribution_name],
-                                    slope=slope,
-                                    m=m,
-                                    k=k)
+def compute_row(noise_distribution_name, slope, m, k):
+    alg_intercepts = run_experiment(
+        noise_distribution=noise_distributions[noise_distribution_name],
+        slope=slope,
+        m=m,
+        k=k)
 
     row = {
               'row_id': uuid.uuid4(),
@@ -77,16 +84,12 @@ def main():
 
     output_file = path.join('data', conf['output_file'])
 
-    algorithms = {name: alg for name, alg in all_algorithms.items() if name in conf['algorithms']}
-    x_distribution = distributions[conf['x_distribution']]
-    noise_distributions = {name: dist for name, dist in distributions.items() if name in conf['noise_distributions']}
-
     k_values = conf['k_values']
     m_values = conf['m_values']
     slopes = conf['slopes']
 
     for i in count(start=1):
-        results = [compute_row(algorithms, x_distribution, noise_distributions, *params) for params in
+        results = [compute_row(*params) for params in
                    product(noise_distributions.keys(), slopes, m_values, k_values)]
 
         if path.exists(output_file):
