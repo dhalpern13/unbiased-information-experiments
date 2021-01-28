@@ -1,5 +1,4 @@
 {
-  "output_file": "results-new.csv",
   "k_values": [5, 20, 50, 100],
   "m_values": [3, 10, 20],
   "slopes": [0, 1, 5]

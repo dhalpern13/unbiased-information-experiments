@@ -82,7 +82,7 @@ def main():
     with open(conf_file) as f:
         conf = json.load(f)
 
-    output_file = path.join('data', conf['output_file'])
+    output_file = path.join('data', argv[2])
 
     k_values = conf['k_values']
     m_values = conf['m_values']
