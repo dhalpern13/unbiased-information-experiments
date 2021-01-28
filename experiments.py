@@ -75,7 +75,7 @@ def main():
     with open(conf_file) as f:
         conf = json.load(f)
 
-    output_file = conf['output_file']
+    output_file = path.join('data', conf['output_file'])
 
     algorithms = {name: alg for name, alg in all_algorithms.items() if name in conf['algorithms']}
     x_distribution = distributions[conf['x_distribution']]
