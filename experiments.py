@@ -102,7 +102,7 @@ def main():
 
         pd.DataFrame(results).to_csv(output_file, index=False, **extra_kwargs)
 
-        print(f'{i} iterations complete')
+        print(f'{output_file}: {i} iterations complete')
 
 
 if __name__ == '__main__':
