@@ -1,4 +1,3 @@
-import json
 import uuid
 from itertools import count, product
 from os import path
@@ -9,6 +8,8 @@ from scipy.stats import uniform, norm, beta, bernoulli, powerlaw
 
 from algorithms import all_points, partition, random_subsets, opt
 
+output_file = "results-all.csv"
+
 algorithms = {
     'all': all_points,
     'partition': partition,
@@ -16,6 +17,11 @@ algorithms = {
     'random_(10*km)': random_subsets(lambda m, k: 10 * k * m),
     'random_1000': random_subsets(lambda m, k: 1000),
 }
+
+m_values = [3, 10, 20]
+k_values = [5, 20, 50, 100]
+slopes = [0, 1, 5]
+
 
 
 def mirror_distribution(dist):
@@ -25,6 +31,7 @@ def mirror_distribution(dist):
     return sample
 
 
+# Note Scipy Uniform takes parameters lower, length
 noise_distributions = {
     'uniform(-2,2)': uniform(-2, 4).rvs,
     'normal(0,.5^2)': norm(0, .5).rvs,
@@ -77,17 +84,6 @@ def compute_row(noise_distribution_name, slope, m, k):
 
 
 def main():
-    conf_file = argv[1]
-
-    with open(conf_file) as f:
-        conf = json.load(f)
-
-    output_file = path.join('data', argv[2])
-
-    k_values = conf['k_values']
-    m_values = conf['m_values']
-    slopes = conf['slopes']
-
     for i in count(start=1):
         results = [compute_row(*params) for params in
                    product(noise_distributions.keys(), slopes, m_values, k_values)]
