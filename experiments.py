@@ -1,7 +1,6 @@
 import uuid
-from itertools import count, product
+from itertools import product
 from os import path
-from sys import argv
 
 import pandas as pd
 from scipy.stats import uniform, norm, beta, bernoulli, powerlaw
@@ -22,6 +21,7 @@ m_values = [3, 10, 20]
 k_values = [5, 20, 50, 100]
 slopes = [0, 1, 5]
 
+iterations = 3000
 
 
 def mirror_distribution(dist):
@@ -35,7 +35,7 @@ def mirror_distribution(dist):
 noise_distributions = {
     'uniform(-2,2)': uniform(-2, 4).rvs,
     'normal(0,.5^2)': norm(0, .5).rvs,
-    'beta(2-2)-mirrored': mirror_distribution(beta(2, 2)),
+    'beta(2,2)-mirrored': mirror_distribution(beta(2, 2)),
     'power-law(2)-mirrored': mirror_distribution(powerlaw(3)),
 }
 
@@ -84,7 +84,7 @@ def compute_row(noise_distribution_name, slope, m, k):
 
 
 def main():
-    for i in count(start=1):
+    for i in range(iterations):
         results = [compute_row(*params) for params in
                    product(noise_distributions.keys(), slopes, m_values, k_values)]
 
