@@ -1,13 +1,19 @@
 import uuid
 from itertools import product
 from os import path
+from sys import argv
 
 import pandas as pd
-from scipy.stats import uniform, norm, beta, bernoulli, powerlaw
+from scipy.stats import uniform, norm, bernoulli, beta, powerlaw
 
-from algorithms import all_points, partition, random_subsets, opt
+from algorithms import all_points, partition, random_subsets, opt, min_cooks_distance
 
-output_file = "results-all.csv"
+if not argv[-1].endswith('.py'):
+    suffix = argv[-1]
+else:
+    suffix = ''
+
+output_file = f'data/results-cooks-{suffix}.csv'
 
 algorithms = {
     'all': all_points,
@@ -15,13 +21,14 @@ algorithms = {
     'random_1': random_subsets(lambda m, k: 1),
     'random_(10*km)': random_subsets(lambda m, k: 10 * k * m),
     'random_1000': random_subsets(lambda m, k: 1000),
+    'cooks': min_cooks_distance
 }
 
 m_values = [3, 10, 20]
 k_values = [5, 20, 50, 100]
 slopes = [0, 1, 5]
 
-iterations = 3000
+iterations = 100
 
 
 def mirror_distribution(dist):
@@ -49,7 +56,7 @@ def generate_xs_ys(num_points, noise_distribution, slope, x_distribution):
     return xs, ys
 
 
-def run_experiment(noise_distribution, slope, m, k):
+def run_experiment(noise_distribution, slope, m, k, include_opt=True):
     xs, ys = generate_xs_ys(num_points=m * k,
                             noise_distribution=noise_distribution,
                             slope=slope,
@@ -57,7 +64,7 @@ def run_experiment(noise_distribution, slope, m, k):
 
     alg_intercepts = {alg_name: alg(xs, ys, m) for alg_name, alg in algorithms.items()}
 
-    if m <= 3 and k <= 20:
+    if include_opt and m <= 3 and k <= 20:
         opt_val = opt(xs, ys, m)
     else:
         opt_val = None
@@ -70,7 +77,8 @@ def compute_row(noise_distribution_name, slope, m, k):
         noise_distribution=noise_distributions[noise_distribution_name],
         slope=slope,
         m=m,
-        k=k)
+        k=k,
+        include_opt=False)
 
     row = {
               'row_id': uuid.uuid4(),

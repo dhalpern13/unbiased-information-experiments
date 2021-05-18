@@ -2,6 +2,7 @@ from itertools import combinations
 from random import sample
 
 import numpy as np
+import statsmodels.api as sm
 from sklearn import linear_model
 
 
@@ -40,3 +41,9 @@ def random_subsets(num_times_mk_func):
         return _best_intercept_from_indices(xs, ys, indices)
 
     return alg
+
+
+def min_cooks_distance(xs, ys, m):
+    cooks_distances = sm.OLS(xs, ys).fit().get_influence().cooks_distance[0]
+    indices = np.argpartition(cooks_distances, m)[:m]
+    return _best_intercept_from_indices(xs, ys, [indices])
