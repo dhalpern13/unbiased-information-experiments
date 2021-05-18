@@ -9,11 +9,11 @@ from scipy.stats import uniform, norm, bernoulli, beta, powerlaw
 from algorithms import all_points, partition, random_subsets, opt, min_cooks_distance
 
 if not argv[-1].endswith('.py'):
-    suffix = argv[-1]
+    suffix = f'-{argv[-1]}'
 else:
     suffix = ''
 
-output_file = f'data/results-cooks-{suffix}.csv'
+output_file = f'data/results{suffix}.csv'
 
 algorithms = {
     'all': all_points,

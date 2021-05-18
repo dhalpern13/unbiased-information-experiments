@@ -5,7 +5,7 @@ Content
 This Two contains three scripts:
 - [aglorithms.py](algorithms.py)
   contains an implementation of all the algorithms we test.
-- [experiemnts.py](experiemnts.py) runs the experiemnts and stores the results in [data/results-all.csv](data/results-all.csv).
+- [experiments.py](experiemnts.py) runs the experiemnts and stores the results in [data/results-all.csv](data/results-all.csv).
 - [generate-plots.ipynb](generate-plots.ipynb)
   is an IPython notebook that generates the plots using the data.
   
