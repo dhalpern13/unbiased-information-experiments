@@ -78,7 +78,7 @@ def compute_row(noise_distribution_name, slope, m, k):
         slope=slope,
         m=m,
         k=k,
-        include_opt=False)
+        include_opt=True)
 
     row = {
               'row_id': uuid.uuid4(),
