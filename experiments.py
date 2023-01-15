@@ -23,7 +23,7 @@ algorithms = {
 m_values = [3, 10, 20]
 k_values = [5, 20, 50, 100]
 slopes = [0, 1, 5]
-iterations = 2
+iterations = 200
 
 
 def mirror_distribution(dist):
