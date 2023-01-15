@@ -1,19 +1,14 @@
-import uuid
-from itertools import product
-from os import path
-from sys import argv
+from itertools import product, repeat, chain
+from multiprocessing import Pool
 
+import numpy as np
 import pandas as pd
-from scipy.stats import uniform, norm, bernoulli, beta, powerlaw
+from scipy.stats import bernoulli, beta, norm, powerlaw, uniform
+from tqdm import tqdm
 
-from algorithms import all_points, partition, random_subsets, opt, min_cooks_distance
+from algorithms import all_points, partition, random_subsets, opt, min_cooks_distance, greedy
 
-if not argv[-1].endswith('.py'):
-    suffix = f'-{argv[-1]}'
-else:
-    suffix = ''
-
-output_file = f'data/results{suffix}.csv'
+output_file = f'data/results.csv'
 
 algorithms = {
     'all': all_points,
@@ -21,14 +16,14 @@ algorithms = {
     'random_1': random_subsets(lambda m, k: 1),
     'random_(10*km)': random_subsets(lambda m, k: 10 * k * m),
     'random_1000': random_subsets(lambda m, k: 1000),
-    'cooks': min_cooks_distance
+    'cooks': min_cooks_distance,
+    'greedy': greedy,
 }
 
 m_values = [3, 10, 20]
 k_values = [5, 20, 50, 100]
 slopes = [0, 1, 5]
-
-iterations = 1000
+iterations = 2
 
 
 def mirror_distribution(dist):
@@ -46,25 +41,25 @@ noise_distributions = {
     'power-law(2)-mirrored': mirror_distribution(powerlaw(3)),
 }
 
-x_distribution = uniform(-1, 2).rvs
+uniform_11 = uniform(-1, 2).rvs
 
 
 def generate_xs_ys(num_points, noise_distribution, slope, x_distribution):
-    xs = x_distribution((num_points, 1))
+    xs = x_distribution(num_points)
     noise = noise_distribution(num_points)
-    ys = xs.dot([slope]) + noise
-    return xs, ys
+    ys = xs * slope + noise
+    return xs[:, np.newaxis], ys
 
 
-def run_experiment(noise_distribution, slope, m, k, include_opt=True):
+def run_experiment(noise_distribution, slope, m, k):
     xs, ys = generate_xs_ys(num_points=m * k,
                             noise_distribution=noise_distribution,
                             slope=slope,
-                            x_distribution=x_distribution)
+                            x_distribution=uniform_11)
 
     alg_intercepts = {alg_name: alg(xs, ys, m) for alg_name, alg in algorithms.items()}
 
-    if include_opt and m <= 3 and k <= 20:
+    if m <= 3 and k <= 20:
         opt_val = opt(xs, ys, m)
     else:
         opt_val = None
@@ -77,11 +72,9 @@ def compute_row(noise_distribution_name, slope, m, k):
         noise_distribution=noise_distributions[noise_distribution_name],
         slope=slope,
         m=m,
-        k=k,
-        include_opt=True)
+        k=k)
 
     row = {
-              'row_id': uuid.uuid4(),
               'noise_distribution': noise_distribution_name,
               'slope': slope,
               'm': m,
@@ -91,22 +84,20 @@ def compute_row(noise_distribution_name, slope, m, k):
     return row
 
 
+def compute_row_args_seed(args):
+    seed, params = args
+    np.random.seed(seed)
+    return compute_row(*params)
+
+
 def main():
-    for i in range(iterations):
-        results = [compute_row(*params) for params in
-                   product(noise_distributions.keys(), slopes, m_values, k_values)]
+    param_combos = list(product(noise_distributions.keys(), slopes, m_values, k_values))
+    with Pool(8) as p:
+        rows = list(tqdm(p.imap_unordered(compute_row_args_seed,
+                                          enumerate(chain.from_iterable(repeat(param_combos, times=iterations)))),
+                         total=iterations * len(param_combos)))
 
-        if path.exists(output_file):
-            extra_kwargs = {
-                'mode': 'a',
-                'header': False
-            }
-        else:
-            extra_kwargs = {}
-
-        pd.DataFrame(results).to_csv(output_file, index=False, **extra_kwargs)
-
-        print(f'{output_file}: {i} iterations complete')
+    pd.DataFrame(rows).to_csv(output_file, index=False)
 
 
 if __name__ == '__main__':

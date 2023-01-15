@@ -2,10 +2,10 @@ Read me
 =======
 Content
 -------
-This Two contains three scripts:
+This repository contains three scripts:
 - [aglorithms.py](algorithms.py)
   contains an implementation of all the algorithms we test.
-- [experiments.py](experiemnts.py) runs the experiemnts and stores the results in [data/results-all.csv](data/results-all.csv).
+- [experiments.py](experiemnts.py) runs the experiments and stores the results in [data/results-with-cooks.csv](data/results-with-cooks.csv).
 - [generate-plots.ipynb](generate-plots.ipynb)
   is an IPython notebook that generates the plots using the data.
   
@@ -17,5 +17,6 @@ versions will probably work, but have not been tested.
 - Pandas 1.2.0
 - Matplotlib 3.3.3
 - Jupyter 1.0.0
-- Skikit-learn 0.24.0
+- Scikit-learn 0.24.0
 - Scipy 1.6.0
+- Statsmodels 0.12.2
